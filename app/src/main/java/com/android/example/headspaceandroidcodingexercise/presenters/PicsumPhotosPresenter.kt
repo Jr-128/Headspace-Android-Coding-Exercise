@@ -7,10 +7,9 @@ import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.room.Room
 import com.android.example.headspaceandroidcodingexercise.database.PicsumPhotosDatabase
-import com.android.example.headspaceandroidcodingexercise.models.PicsumPhotos
+import com.android.example.headspaceandroidcodingexercise.models.PicsumPhotosItem
 import com.android.example.headspaceandroidcodingexercise.rest.PicsumPhotosApi
 import com.android.example.headspaceandroidcodingexercise.rest.PicsumPhotosRetrofit
-import com.android.example.headspaceandroidcodingexercise.utils.UIState
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -19,9 +18,7 @@ import io.reactivex.schedulers.Schedulers
  * Class will be the presenter for the Picsum photos and will handle the
  * network call data retrieval and updating the view portion
  */
-class PicsumPhotosPresenter : IPicsumPhotosPresenter {
-
-    val application: Application = Application()
+class PicsumPhotosPresenter(private val application: Application) : IPicsumPhotosPresenter {
 
     var picsumPhotosApi: PicsumPhotosApi = PicsumPhotosRetrofit.picsumPhotosApi
 
@@ -51,6 +48,7 @@ class PicsumPhotosPresenter : IPicsumPhotosPresenter {
     override fun initPicsumPhotosPresenter(viewContract: IPicsumPhotosView) {
         //Assigning the view contract to the local variable
         iPicsumPhotosViewContract = viewContract
+        Log.d("","")
     }
 
     //This method get the data from the server overriding the view contract method
@@ -68,11 +66,11 @@ class PicsumPhotosPresenter : IPicsumPhotosPresenter {
                 .subscribe(
                     //Updated the view when the success occurs
                     {
-                        iPicsumPhotosViewContract?.onSuccessData(UIState.Success<PicsumPhotos>(it))
+                        iPicsumPhotosViewContract?.onSuccessData(it)
                     },
                     //Updated the view when the error occurs
                     {
-                        iPicsumPhotosViewContract?.onErrorData(UIState.Error(it))
+                        iPicsumPhotosViewContract?.onErrorData(it)
                     }
                 )
             disposable.add(picsumPhotosDisposable)
@@ -95,7 +93,7 @@ class PicsumPhotosPresenter : IPicsumPhotosPresenter {
         iPicsumPhotosViewContract = null
     }
 
-    override fun savePhotosToDb(picsumPhotos: PicsumPhotos) {
+    override fun savePhotosToDb(picsumPhotos: List<PicsumPhotosItem>) {
         val picsumPhotosDatabaseDisposable = picsumPhotosDatabase
             .getPicsumPhotosDao()
             .insertPicsumPhotosToDb(picsumPhotos)
@@ -116,9 +114,10 @@ class PicsumPhotosPresenter : IPicsumPhotosPresenter {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
-                    iPicsumPhotosViewContract?.onSuccessData(UIState.Success<PicsumPhotos>(it))
+                    iPicsumPhotosViewContract?.onSuccessData(it)
                     Log.d("success", "getPhotosFromDb() successful! updating view") },
-                { Log.d("error", "getPhotosFromDb() error: ${it.localizedMessage}") }
+                {
+                    Log.d("error", "getPhotosFromDb() error: ${it.localizedMessage}") }
             )
         disposable.add(picsumPhotosDatabaseDisposable)
     }
@@ -145,7 +144,7 @@ interface IPicsumPhotosPresenter {
     fun destroyPresenter()
 
     //This method saves the data to the database
-    fun savePhotosToDb(picsumPhotos: PicsumPhotos)
+    fun savePhotosToDb(picsumPhotos: List<PicsumPhotosItem>)
 
     //This method get the data from the database
     fun getPhotosFromDb()
@@ -153,10 +152,10 @@ interface IPicsumPhotosPresenter {
 
 interface IPicsumPhotosView {
     //Method returns the success response to the view
-    fun onSuccessData(uiState: UIState)
+    fun onSuccessData(picsumPhotos: List<PicsumPhotosItem>)
 
     //Method returns the error response to the view
-    fun onErrorData(uiState: UIState)
+    fun onErrorData(error: Throwable)
 
     //Method returns the network error response to the view
     fun onErrorNetwork()

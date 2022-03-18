@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.android.example.headspaceandroidcodingexercise.models.PicsumPhotos
+import com.android.example.headspaceandroidcodingexercise.models.PicsumPhotosItem
 import io.reactivex.Completable
 import io.reactivex.Flowable
 
@@ -12,8 +12,8 @@ import io.reactivex.Flowable
 interface PicsumPhotosDao {
 
     @Query("select * from picsumphotositem")
-    fun getPicsumPhotosFromDb(): Flowable<PicsumPhotos>
+    fun getPicsumPhotosFromDb(): Flowable<List<PicsumPhotosItem>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertPicsumPhotosToDb(picsumPhotos: PicsumPhotos): Completable
+    fun insertPicsumPhotosToDb(picsumPhotos: List<PicsumPhotosItem>): Completable
 }
