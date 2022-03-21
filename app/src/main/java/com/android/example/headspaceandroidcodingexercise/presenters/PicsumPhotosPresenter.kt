@@ -48,33 +48,39 @@ class PicsumPhotosPresenter(private val application: Application) : IPicsumPhoto
     override fun initPicsumPhotosPresenter(viewContract: IPicsumPhotosView) {
         //Assigning the view contract to the local variable
         iPicsumPhotosViewContract = viewContract
-        Log.d("","")
+        Log.e("pics","getPicsumPhotosFromServer initPicsumPhotosPresenter")
     }
 
     //This method get the data from the server overriding the view contract method
     override fun getPicsumPhotosFromServer() {
+        Log.e("pics","PicsumPhotosPresenter getPicsumPhotosFromServer invoked")
         /**
          * We retrieve the photos from the server, then switch to a worker thread
          * aside from the main thread, observing the response on the main thread,
          * finally subscribing to retrieve the response and get the data.
          */
         if (isNetworkAvailable) {
+            Log.e("pics","getPicsumPhotosFromServer in isNetworkAvailable")
             val picsumPhotosDisposable = picsumPhotosApi
+
                 .getPhotos()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     //Updated the view when the success occurs
                     {
+                        Log.e("pics","getPicsumPhotosFromServer success $it")
                         iPicsumPhotosViewContract?.onSuccessData(it)
                     },
                     //Updated the view when the error occurs
                     {
+                        Log.e("pics","getPicsumPhotosFromServer error $it")
                         iPicsumPhotosViewContract?.onErrorData(it)
                     }
                 )
             disposable.add(picsumPhotosDisposable)
         } else {
+            Log.e("pics","getPicsumPhotosFromServer error network")
             iPicsumPhotosViewContract?.onErrorNetwork()
         }
     }
